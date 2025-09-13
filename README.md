@@ -1,20 +1,40 @@
-# Konrad
+# Konrad – Konsole Random Scheme
 
-**Konrad** ist eine modifizierte Version der KDE-Konsole (*konsole*), die beim Start automatisch ein zufälliges Farbschema lädt.  
-Es handelt sich **nicht** um ein Plugin, sondern um ein eigenständiges Binary. Die Farbschemata liegen als normale Schema-Dateien im Dateisystem.
+**Konrad** ist ein kleines Bash-Wrapper-Script für KDEs **Konsole**, das bei jedem Start automatisch ein zufälliges Farbschema auswählt.  
+Es ist **kein Plugin**, sondern läuft als eigenständiges Binary (Shell-Script).  
 
-## Features
-- Startet wie die normale KDE-Konsole
-- Wählt bei jedem Start ein zufälliges Farbschema
-- Verwendet Standard-Konsole-Schema-Dateien (`konsole-random-scheme`)
+## Funktionsweise
+- Sucht alle `*.colorscheme` Dateien in:
+  - `~/.local/share/konsole/`
+  - `/usr/share/konsole/`
+- Liest den Anzeigenamen aus der `[General]`-Sektion (`Name=...`)
+- Wählt zufällig eines dieser Schemen aus
+- Wendet es mit `konsoleprofile colors=<Name>` auf den aktuellen Tab an
+- Startet danach die gewohnte Shell (`$SHELL`)
 
 ## Installation
-1. Binary `konrad` ins `$PATH` legen (z. B. `/usr/local/bin/`).
-2. Farbschemata ins KDE-Schema-Verzeichnis kopieren:
-   - Systemweit: `/usr/share/konsole/`
-   - Benutzerbezogen: `~/.local/share/konsole/`
+1. Script nach `~/.local/bin/konsole-random-scheme` (oder `/usr/local/bin/`) kopieren:
+   ```bash
+   chmod +x ~/.local/bin/konsole-random-scheme
+   ```
+2. Sicherstellen, dass das Binary im `$PATH` liegt.
+3. Optional einen Alias setzen, z. B. in `~/.bashrc`:
+   ```bash
+   alias konrad="konsole -e konsole-random-scheme"
+   ```
 
 ## Nutzung
-Einfach im Terminal starten:
 ```bash
 konrad
+```
+oder direkt  
+```bash
+konsole -e konsole-random-scheme
+```
+
+Jedes neue Fenster oder jeder neue Tab bekommt so ein anderes zufälliges Farbschema.
+
+## Hinweise
+- Wenn keine `*.colorscheme`-Dateien gefunden werden, fällt das Script einfach zurück in die Standard-Shell.
+- Bestehende Systemeinstellungen von KDE werden nicht überschrieben.  
+- Du kannst jederzeit eigene `.colorscheme`-Dateien hinzufügen.
