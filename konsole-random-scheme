@@ -1,0 +1,31 @@
+# ~/.local/bin/konsole-random-scheme
+#!/usr/bin/env bash
+set -euo pipefail
+
+# verfügbare *.colorscheme-Dateien einsammeln
+mapfile -t files < <(find "$HOME/.local/share/konsole" /usr/share/konsole -maxdepth 1 -type f -name '*.colorscheme' 2>/dev/null || true)
+
+# Namen auslesen (Name= in [General]-Sektion)
+names=()
+for f in "${files[@]}"; do
+  n="$(awk -F= '
+    /^\[General\]/{g=1}
+    g && /^Name=/{print $2; exit}
+  ' "$f")"
+  [[ -n "${n:-}" ]] && names+=("$n")
+done
+
+# Fallback: wenn nichts gefunden wurde, einfach weitermachen
+[[ ${#names[@]} -gt 0 ]] || exec "${SHELL:-/bin/bash}"
+
+# zufällig ein Schema wählen
+scheme="${names[$((RANDOM % ${#names[@]}))]}"
+
+# im aktuellen Konsole-Tab anwenden
+if command -v konsoleprofile >/dev/null 2>&1; then
+  konsoleprofile colors="$scheme" || true
+fi
+
+# in die eigentliche Shell übergehen
+exec "${SHELL:-/bin/bash}"
+

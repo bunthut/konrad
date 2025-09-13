@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# jedes neue Konsole-Fenster mit zufälligem Farbschema
+set -euo pipefail
+
+profiles_dir="$HOME/.local/share/konsole"
+mkdir -p "$profiles_dir"
+
+# Farbschemen sammeln
+mapfile -t colorscheme_files < <(printf '%s\n' \
+  "$HOME/.local/share/konsole"/*.colorscheme \
+  /usr/share/konsole/*.colorscheme 2>/dev/null | awk 'NF')
+
+schemes=()
+for f in "${colorscheme_files[@]}"; do
+  name=$(awk -F= '/^[[:space:]]*Name=/{print $2; exit}' "$f")
+  [[ -n "${name:-}" ]] && schemes+=("$name")
+done
+[[ ${#schemes[@]} -eq 0 ]] && schemes=("Breeze" "Breeze Light" "WhiteOnBlack" "Black on White" "Solarized" "Solarized Light")
+
+pick="${schemes[$((RANDOM % ${#schemes[@]}))]}"
+
+# alte temp-Profile aufräumen (>7 Tage)
+find "$profiles_dir" -maxdepth 1 -type f -name 'konrand-*.profile' -mtime +7 -delete 2>/dev/null || true
+
+id="konrand-$(date +%s%N)"
+profile_file="$profiles_dir/$id.profile"
+
+cat > "$profile_file" <<EOF2
+[General]
+Name=$id
+Parent=FALLBACK/
+Command=${SHELL:-/bin/bash}
+
+[Appearance]
+ColorScheme=$pick
+EOF2
+
+# separate Instanz, kein Andocken
+exec env KONSOLE_NO_SINGLE_APP=1 konsole --profile "$id"
